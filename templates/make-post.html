@@ -27,7 +27,7 @@ include "header.html" %}
 <main class="mb-4">
   <div class="container">
     <div class="row">
-      {% if current_user.id == 1 or current_user.id == 2 %}
+      {% if current_user.id == 1 %}
       <div class="col-lg-8 col-md-10 mx-auto">
         {{ ckeditor.load() }} {{ ckeditor.config(name='body') }} {{
         render_form(form, novalidate=True, button_map={"submit": "primary"}) }}

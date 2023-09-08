@@ -1,3 +1,4 @@
 instance
 .idea
 __pycache__
+.env

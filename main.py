@@ -1,5 +1,5 @@
 from datetime import date
-from flask import Flask, abort, render_template, redirect, url_for, flash
+from flask import Flask, abort, render_template, redirect, url_for, flash, request
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
@@ -8,32 +8,27 @@ from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
-# Import your forms from the forms.py
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm
+import os
+import smtplib
+from dotenv import load_dotenv
+load_dotenv()
 
-'''
-Make sure the required packages are installed: 
-Open the Terminal in PyCharm (bottom left). 
 
-On Windows type:
-python -m pip install -r requirements.txt
+MY_EMAIL = os.getenv("EMAIL")
+YOUR_EMAIL = os.getenv("YOUREMAIL")
+PASSWORD = os.getenv("PASSWORD")
 
-On MacOS type:
-pip3 install -r requirements.txt
-
-This will install the packages from the requirements.txt for this project.
-'''
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = os.environ.get("FLASK_KEY")
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///posts.db")
 db = SQLAlchemy()
 db.init_app(app)
 
-# TODO: Configure Flask-Login
 login_manager = LoginManager()
 login_manager.session_protection = "strong"
 login_manager.login_view = "login"
@@ -79,39 +74,21 @@ class Comment(db.Model):
     comments_posted = db.Column(db.Text)
 
 
-# TODO: Create a User table for all your registered users.
-
-
 with app.app_context():
-    # db.drop_all()
     db.create_all()
 
-
-# with app.app_context():
-#     user = db.session.query(Comment)
-#     for user in user:
-#         if user.blog_post_id == 4:
-#             # userr = db.get_or_404(User, user.commenter_id)
-#             print(f"{user.commenter.name} = {user.comments_posted} ")
-# print(user.name)
-# for post in user.comments:
-#     if post.blog_post_id == 4:
-#         # print(post.blog_post_id)
-#         print(post.comments_posted)
 
 # Python Decorator
 def login_require(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if current_user.id > 2:
+        if current_user.id > 1:
             # return redirect(url_for('get_all_posts'))
             return abort(403)
         return f(*args, **kwargs)
-
     return decorated_function
 
 
-# TODO: Use Werkzeug to hash the user's password when creating a new user.
 @app.route('/register', methods=["GET", "POST"])
 def register():
     register_form = RegisterForm()
@@ -132,7 +109,6 @@ def register():
     return render_template("register.html", form=register_form)
 
 
-# TODO: Retrieve a user from the database based on their email. 
 @app.route('/login', methods=["GET", "POST"])
 def login():
     login_form = LoginForm()
@@ -163,7 +139,6 @@ def get_all_posts():
     return render_template("index.html", all_posts=posts)
 
 
-# TODO: Allow logged-in users to comment on posts
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
     requested_post = db.get_or_404(BlogPost, post_id)
@@ -189,7 +164,6 @@ def show_post(post_id):
     return render_template("post.html", post=requested_post, form=comment, users=users, gravatar=gravatar)
 
 
-# TODO: Use a decorator so only an admin user can create a new post
 @app.route("/new-post", methods=["GET", "POST"])
 @login_required
 @login_require
@@ -209,7 +183,6 @@ def add_new_post():
     return render_template("make-post.html", form=blog_form)
 
 
-# TODO: Use a decorator so only an admin user can edit a post
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
 @login_required
 @login_require
@@ -232,7 +205,6 @@ def edit_post(post_id):
     return render_template("make-post.html", form=blog_form, is_edit=True)
 
 
-# TODO: Use a decorator so only an admin user can delete a post
 @app.route("/delete/<int:post_id>")
 @login_require
 def delete_post(post_id):
@@ -247,10 +219,24 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
+    if request.method == "POST":
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+            connection.starttls()
+            connection.login(user=MY_EMAIL, password=PASSWORD)
+            connection.sendmail(from_addr=MY_EMAIL,
+                                to_addrs=YOUR_EMAIL,
+                                msg=f"Subject:Mitchel's Blog!\n\n "
+                                    f"Name: {request.form.get('name')}\n\n "
+                                    f"Email: {request.form.get('email')}\n\n "
+                                    f"Phone: {request.form.get('phone')}\n\n "
+                                    f"Message: {request.form.get('message')}")
+        sent = True
+        return render_template("contact.html", msg_sent=sent)
     return render_template("contact.html")
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run(debug=False)
