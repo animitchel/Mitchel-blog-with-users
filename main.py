@@ -48,7 +48,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.Integer, nullable=False)
+    password = db.Column(db.String(300), nullable=False)
     posts = relationship("BlogPost", back_populates="author")
     comments = relationship("Comment", back_populates="commenter")
 
@@ -59,10 +59,10 @@ class BlogPost(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     author = relationship("User", back_populates="posts")
     title = db.Column(db.String(250), unique=True, nullable=True)
-    subtitle = db.Column(db.String(250), nullable=True)
+    subtitle = db.Column(db.String(300), nullable=True)
     date = db.Column(db.String(250), nullable=True)
     body = db.Column(db.Text, nullable=True)
-    img_url = db.Column(db.String(250), nullable=True)
+    img_url = db.Column(db.String(500), nullable=True)
 
 
 class Comment(db.Model):
@@ -79,7 +79,7 @@ with app.app_context():
 
 
 # Python Decorator
-def login_require(f):
+def admin(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.id > 1:
@@ -166,7 +166,7 @@ def show_post(post_id):
 
 @app.route("/new-post", methods=["GET", "POST"])
 @login_required
-@login_require
+@admin
 def add_new_post():
     blog_form = CreatePostForm()
     if blog_form.validate_on_submit():
@@ -185,7 +185,7 @@ def add_new_post():
 
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
 @login_required
-@login_require
+@admin
 def edit_post(post_id):
     ins_blog = db.get_or_404(BlogPost, post_id)
     blog_form = CreatePostForm()
@@ -206,7 +206,7 @@ def edit_post(post_id):
 
 
 @app.route("/delete/<int:post_id>")
-@login_require
+@admin
 def delete_post(post_id):
     post_to_delete = db.get_or_404(BlogPost, post_id)
     db.session.delete(post_to_delete)
