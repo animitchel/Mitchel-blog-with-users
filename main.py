@@ -226,7 +226,7 @@ def send_simple_message(name, email, phone, text):
     return requests.post(
         "https://api.mailgun.net/v3/sandboxbcad79a0f1f848968172d89cc0a61ae6.mailgun.org/messages",
         auth=("api", MAILGUN_API),
-        data={"from": "Mailgun Sandbox <postmaster@sandboxbcad79a0f1f848968172d89cc0a61ae6.mailgun.org>",
+        data={"from": "jeremylawrence112@gmail.com",
               "to": "Mitchel Ani <animitchel24@gmail.com>",
               "subject": "Mitchel's Blog!",
               "text": f"Name: {name}\n\n "
