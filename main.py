@@ -11,13 +11,15 @@ from sqlalchemy.orm import relationship
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm
 import os
 import smtplib
+import requests
 from dotenv import load_dotenv
-load_dotenv()
 
+load_dotenv()
 
 MY_EMAIL = os.getenv("EMAIL")
 YOUR_EMAIL = os.getenv("YOUREMAIL")
 PASSWORD = os.getenv("PASSWORD")
+MAILGUN_API = os.getenv("MAILGUN")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("FLASK_KEY")
@@ -86,6 +88,7 @@ def admin(f):
             # return redirect(url_for('get_all_posts'))
             return abort(403)
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -219,20 +222,25 @@ def about():
     return render_template("about.html")
 
 
+def send_simple_message(name, email, phone, text):
+    return requests.post(
+        "https://api.mailgun.net/v3/sandboxbcad79a0f1f848968172d89cc0a61ae6.mailgun.org/messages",
+        auth=("api", MAILGUN_API),
+        data={"from": "Mailgun Sandbox <postmaster@sandboxbcad79a0f1f848968172d89cc0a61ae6.mailgun.org>",
+              "to": "Mitchel Ani <animitchel24@gmail.com>",
+              "subject": "Mitchel's Blog!",
+              "text": f"Name: {name}\n\n "
+                      f"Email: {email}\n\n"
+                      f"Phone: {phone}\n\n"
+                      f"Message: {text}"})
+
+
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
+        send_simple_message(request.form.get('name'), request.form.get('email'), request.form.get('phone'),
+                            request.form.get('message'))
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-            connection.starttls()
-            connection.login(user=MY_EMAIL, password=PASSWORD)
-            connection.sendmail(from_addr=MY_EMAIL,
-                                to_addrs=YOUR_EMAIL,
-                                msg=f"Subject:Mitchel's Blog!\n\n "
-                                    f"Name: {request.form.get('name')}\n\n "
-                                    f"Email: {request.form.get('email')}\n\n "
-                                    f"Phone: {request.form.get('phone')}\n\n "
-                                    f"Message: {request.form.get('message')}")
         sent = True
         return render_template("contact.html", msg_sent=sent)
     return render_template("contact.html")
@@ -240,5 +248,3 @@ def contact():
 
 if __name__ == "__main__":
     app.run(debug=False)
-
-
