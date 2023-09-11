@@ -225,7 +225,7 @@ def contact():
 
         with smtplib.SMTP("smtp.gmail.com", 587) as connection:
             connection.starttls()
-            connection.login(user=jeremylawrence112@gmail.com, password=thsauaiotpemdbzg)
+            connection.login(user="jeremylawrence112@gmail.com", password="thsauaiotpemdbzg")
             connection.sendmail(from_addr=MY_EMAIL,
                                 to_addrs=YOUR_EMAIL,
                                 msg=f"Subject:Mitchel's Blog!\n\n "
