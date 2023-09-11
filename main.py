@@ -223,7 +223,7 @@ def about():
 def contact():
     if request.method == "POST":
 
-        with smtplib.SMTP("smtp.gmail.com", 465) as connection:
+        with smtplib.SMTP("smtp.gmail.com", 2525) as connection:
             connection.starttls()
             connection.login(user=MY_EMAIL, password=PASSWORD)
             connection.sendmail(from_addr=MY_EMAIL,
