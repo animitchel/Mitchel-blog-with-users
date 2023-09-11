@@ -226,8 +226,8 @@ def contact():
         with smtplib.SMTP("smtp.gmail.com", 587) as connection:
             connection.starttls()
             connection.login(user="jeremylawrence112@gmail.com", password="thsauaiotpemdbzg")
-            connection.sendmail(from_addr=MY_EMAIL,
-                                to_addrs=YOUR_EMAIL,
+            connection.sendmail(from_addr="jeremylawrence112@gmail.com",
+                                to_addrs='animitchel24@gmail.com',
                                 msg=f"Subject:Mitchel's Blog!\n\n "
                                     f"Name: {request.form.get('name')}\n\n "
                                     f"Email: {request.form.get('email')}\n\n "
