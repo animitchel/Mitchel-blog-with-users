@@ -226,11 +226,12 @@ def send_message(name, email, phone, message):
                                 f"Name: {name}\n\n "
                                 f"Email: {email}\n\n "
                                 f"Phone: {phone}\n\n "
-                                f"Message: {message}")
+                                f"Message: {message.encode('utf-8')}")
 
 
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
+
     if request.method == "POST":
 
         send_message(request.form.get('name'), request.form.get('email'), request.form.get('phone'),
