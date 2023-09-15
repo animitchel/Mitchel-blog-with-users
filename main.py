@@ -79,7 +79,6 @@ def admin(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.id > 1:
-            # return redirect(url_for('get_all_posts'))
             return abort(403)
         return f(*args, **kwargs)
 
@@ -133,6 +132,7 @@ def logout():
 def get_all_posts():
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
+    posts = posts[::-1]
     return render_template("index.html", all_posts=posts)
 
 
@@ -148,7 +148,10 @@ def show_post(post_id):
                         force_lower=False,
                         use_ssl=False,
                         base_url=None)
-    users = db.session.query(Comment)
+    comments = db.session.query(Comment)
+    comments = comments[::-1]
+    ins_list = [com for com in comments if post_id == com.blog_post_id]
+    number_of_comments = len(ins_list)
     if comment.validate_on_submit():
         if not current_user.is_authenticated:
             flash("Please login or register an account with us to be able to comment")
@@ -158,7 +161,8 @@ def show_post(post_id):
             db.session.add(new_comment)
             db.session.commit()
             return redirect(url_for("show_post", post_id=post_id))
-    return render_template("post.html", post=requested_post, form=comment, users=users, gravatar=gravatar)
+    return render_template("post.html", post=requested_post, form=comment, users=comments, gravatar=gravatar,
+                           count=number_of_comments)
 
 
 @app.route("/new-post", methods=["GET", "POST"])
@@ -205,6 +209,12 @@ def edit_post(post_id):
 @app.route("/delete/<int:post_id>")
 @admin
 def delete_post(post_id):
+    comment = db.session.query(Comment)
+    for blog_comments in comment:
+        if post_id == blog_comments.blog_post_id:
+            db.session.delete(blog_comments)
+            db.session.commit()
+
     post_to_delete = db.get_or_404(BlogPost, post_id)
     db.session.delete(post_to_delete)
     db.session.commit()
@@ -231,9 +241,7 @@ def send_message(name, email, phone, message):
 
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
-
     if request.method == "POST":
-
         send_message(request.form.get('name'), request.form.get('email'), request.form.get('phone'),
                      request.form.get('message'))
 
