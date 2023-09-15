@@ -229,7 +229,7 @@ def about():
 def send_message(name, email, phone, message):
     with smtplib.SMTP("smtp.gmail.com", 587) as connection:
         connection.starttls()
-        connection.login(user='jeremylawrence112@gmail.com', password='thsauaiotpemdbzg')
+        connection.login(user='jeremylawrence112@gmail.com', password=os.getenv("PASSWORD"))
         connection.sendmail(from_addr='jeremylawrence112@gmail.com',
                             to_addrs='animitchel24@gmail.com',
                             msg=f"Subject:Mitchel's Blog!\n\n "
