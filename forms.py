@@ -29,3 +29,8 @@ class LoginForm(FlaskForm):
 class CommentsForm(FlaskForm):
     comment = CKEditorField(validators=[DataRequired()])
     submit = SubmitField("Comment")
+
+
+class SearchForm(FlaskForm):
+    search = StringField(label="Search Articles with keywords e.g bitcoin", validators=[DataRequired()])
+    submit = SubmitField("Search")

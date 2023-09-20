@@ -1,20 +1,23 @@
+import os
+import smtplib
+import requests
 from datetime import date
+from functools import wraps
+
+from dotenv import load_dotenv
 from flask import Flask, abort, render_template, redirect, url_for, flash, request
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
 from flask_sqlalchemy import SQLAlchemy
-from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
-from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm
-import os
-import smtplib
-from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm, SearchForm
 
 load_dotenv()
-
+search_value = None
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("FLASK_KEY")
 ckeditor = CKEditor(app)
@@ -128,12 +131,39 @@ def logout():
     return redirect(url_for('get_all_posts'))
 
 
-@app.route('/')
+def news_api(search):
+    header = {"X-Api-Key": "780cf801f9be425aa0c7b97600e52901"
+              }
+    params = {
+        "q": search,
+        "language": "en",
+        "sortBy": "relevancy, popularity, publishedAt"
+    }
+    d = requests.get(url="https://newsapi.org/v2/everything?", params=params, headers=header)
+    d.raise_for_status()
+    data = d.json()
+    return data["articles"][:10]
+
+
+@app.route('/', methods=["GET", "POST"])
 def get_all_posts():
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
     posts = posts[::-1]
-    return render_template("index.html", all_posts=posts)
+    search = SearchForm()
+
+    if search.validate_on_submit():
+        news = news_api(search.search.data)
+        return render_template("index.html", all_posts=posts, search=search, news=news)
+    return render_template("index.html", all_posts=posts, search=search)
+
+
+@app.route("/news-<post_id>", methods=["GET", "POST"])
+def new_api(post_id):
+    news = news_api(post_id)
+    for data in news:
+        if data["title"] == post_id:
+            return render_template("shownews.html", news=data)
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
@@ -251,4 +281,4 @@ def contact():
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

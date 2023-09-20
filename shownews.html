@@ -1,0 +1,41 @@
+{% block content %}
+{% include "header.html" %}
+
+<!-- Page Header-->
+<header class="masthead" style="background-image: url('{{news.urlToImage}}')">
+  <div class="container position-relative px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        <div class="post-heading">
+          <h1>{{ news.title }}</h1>
+          <h2 class="subheading">{{ news.description }}</h2>
+          <span class="meta"
+            >Posted by
+            <a href="#">{{ news.title }}</a>
+            on {{ data.publishedAt[:10] }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<article>
+  <div class="container px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        {{ data.content }}
+
+        <div class="d-flex justify-content-end mb-4">
+          <a class="btn btn-secondary text-uppercase" href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="25" fill="currentColor" class="bi bi-arrow-90deg-up"
+                 viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M4.854 1.146a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L4 2.707V12.5A2.5 2.5 0 0 0 6.5
+            15h8a.5.5 0 0 0 0-1h-8A1.5 1.5 0 0 1 5 12.5V2.707l3.146 3.147a.5.5 0 1 0 .708-.708l-4-4z"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</article>
+
+{% include "footer.html" %} {% endblock %}
