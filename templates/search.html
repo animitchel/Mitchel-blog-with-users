@@ -1,42 +1,39 @@
-{% from "bootstrap5/form.html" import render_form %}
 {% include "header.html" %}
 
 <!-- Page Header-->
 <header
   class="masthead"
-  style="background-image: url('../static/assets/img/home-bg.jpg')"
->
+  style="background-image: url('../static/assets/img/world-globalization-ss-1920.jpg')">
   <div class="container position-relative px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
         <div class="site-heading">
-          <h1>Mitchel's Blog</h1>
-          <span class="subheading">A collection of random musings.</span>
+          <h1>{{ search_name }}</h1>
+          <span class="subheading">News Articles all across the globe related to {{ search_name }}</span>
         </div>
       </div>
     </div>
   </div>
 </header>
+
 <!-- Main Content-->
 <div class="container px-4 px-lg-5">
   <div class="row gx-4 gx-lg-5 justify-content-center">
     <div class="col-md-10 col-lg-8 col-xl-7">
       <!-- Post preview-->
-      {{ render_form(search, novalidate=True , button_map={"submit": "primary"}) }}
-      <hr class="my-5" />
 
-      {% for post in all_posts %}
+      {% for data in news %}
       <div class="post-preview">
-        <a href="{{ url_for('show_post', post_id=post.id) }}">
-          <h2 class="post-title">{{ post.title }}</h2>
-          <h3 class="post-subtitle">{{ post.subtitle }}</h3>
+        <a href="{{ url_for('new_api', post_id = data.title )}}">
+          <h2 class="post-title">{{ data.title }}</h2>
+          <h3 class="post-subtitle">{{ data.description }}</h3>
         </a>
         <p class="post-meta">
           Posted by
-          <a href="#">{{post.author.name}}</a>
-          on {{post.date}}
+          <a href="#">{{data.author}}</a>
+          on {{data.publishedAt[:10]}}
           {% if current_user.id == 1 %}
-          <a href="{{url_for('delete_post', post_id=post.id) }}">
+          <a href="#">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3"
                  viewBox="0 0 16 16">
             <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0
@@ -48,20 +45,9 @@
           {% endif %}
         </p>
       </div>
-      <!-- Divider-->
-      <hr class="my-4" />
+      <hr class="my-5" />
       {% endfor %}
 
-      <!-- New Post -->
-      {% if current_user.id == 1 %}
-      <div class="d-flex justify-content-end mb-4">
-        <a
-          class="btn btn-primary float-right"
-          href="{{url_for('add_new_post')}}"
-          >Create New Post</a
-        >
-      </div>
-      {% endif %}
       <!-- Pager-->
       <div class="d-flex justify-content-end mb-4">
         <a class="btn btn-secondary text-uppercase" href="#">

@@ -32,5 +32,6 @@ class CommentsForm(FlaskForm):
 
 
 class SearchForm(FlaskForm):
-    search = StringField(label="Search Articles with keywords e.g bitcoin", validators=[DataRequired()])
+    search = StringField(label="Search through millions of articles from over 80,000 large and small news sources and "
+                               "blogs e.g bitcoin", validators=[DataRequired()])
     submit = SubmitField("Search")

@@ -17,7 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm, SearchForm
 
 load_dotenv()
-search_value = None
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("FLASK_KEY")
 ckeditor = CKEditor(app)
@@ -132,12 +132,12 @@ def logout():
 
 
 def news_api(search):
-    header = {"X-Api-Key": "780cf801f9be425aa0c7b97600e52901"
+    header = {"X-Api-Key": os.getenv("APIKEY")
               }
     params = {
         "q": search,
         "language": "en",
-        "sortBy": "relevancy, popularity, publishedAt"
+        "sortBy": "publishedAt"
     }
     d = requests.get(url="https://newsapi.org/v2/everything?", params=params, headers=header)
     d.raise_for_status()
@@ -145,22 +145,32 @@ def news_api(search):
     return data["articles"][:10]
 
 
+search_name = []
+
+
 @app.route('/', methods=["GET", "POST"])
 def get_all_posts():
+    search_name.clear()
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
     posts = posts[::-1]
     search = SearchForm()
-
     if search.validate_on_submit():
-        news = news_api(search.search.data)
-        return render_template("index.html", all_posts=posts, search=search, news=news)
+        search_name.append(search.search.data)
+        return redirect(url_for("search_results", data=search.search.data))
+
     return render_template("index.html", all_posts=posts, search=search)
+
+
+@app.route("/search/<data>", methods=["GET", "POST"])
+def search_results(data):
+    news = news_api(data)
+    return render_template("search.html", news=news, search_name=data.title())
 
 
 @app.route("/news-<post_id>", methods=["GET", "POST"])
 def new_api(post_id):
-    news = news_api(post_id)
+    news = news_api(search_name[0])
     for data in news:
         if data["title"] == post_id:
             return render_template("shownews.html", news=data)
