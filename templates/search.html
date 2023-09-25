@@ -23,10 +23,10 @@
       <!-- Post preview-->
 
       {% for data in news %}
+      {% if data.description != '[Removed]' %}
       <div class="post-preview">
         <a href="{{ url_for('new_api', post_id = data.title )}}">
           <h2 class="post-title">{{ data.title }}</h2>
-          <h3 class="post-subtitle">{{ data.description }}</h3>
         </a>
         <p class="post-meta">
           Posted by
@@ -45,6 +45,7 @@
           {% endif %}
         </p>
       </div>
+      {% endif %}
       <hr class="my-5" />
       {% endfor %}
 
