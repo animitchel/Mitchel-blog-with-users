@@ -142,7 +142,7 @@ def news_api(search):
     d = requests.get(url="https://newsapi.org/v2/everything?", params=params, headers=header)
     d.raise_for_status()
     data = d.json()
-    return data["articles"][:10]
+    return data["articles"][:20]
 
 
 search_name = []
