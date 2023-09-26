@@ -170,10 +170,14 @@ def search_results(data):
 
 @app.route("/news-<post_id>", methods=["GET", "POST"])
 def new_api(post_id):
-    news = news_api(search_name[0])
-    for data in news:
-        if data["title"] == post_id:
-            return render_template("shownews.html", news=data)
+    try:
+        news = news_api(search_name[0])
+        for data in news:
+            if data["title"] == post_id:
+                return render_template("shownews.html", news=data)
+    except TypeError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])

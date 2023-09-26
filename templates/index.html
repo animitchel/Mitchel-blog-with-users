@@ -22,6 +22,13 @@
   <div class="row gx-4 gx-lg-5 justify-content-center">
     <div class="col-md-10 col-lg-8 col-xl-7">
       <!-- Post preview-->
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <p class="paragraph">{{ message }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
       {{ render_form(search, novalidate=True , button_map={"submit": "primary"}) }}
       <hr class="my-5" />
 
