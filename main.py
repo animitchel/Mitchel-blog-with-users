@@ -178,6 +178,9 @@ def new_api(post_id):
     except TypeError:
         flash("Something went wrong, please search for the item again")
         return redirect(url_for("get_all_posts"))
+    except IndexError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
