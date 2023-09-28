@@ -8,8 +8,12 @@
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
         <div class="site-heading">
+          {% if news %}
           <h1>{{ search_name }} HEADLINES</h1>
           <span class="subheading">News Articles all across the globe related to {{ search_name }}</span>
+          {% else %}
+          <h2>Sorry no news articles found on {{ search_name }} at this time. </h2>
+          {% endif %}
         </div>
       </div>
     </div>
