@@ -149,6 +149,10 @@ def news_api(search):
 search_name = []
 
 
+def search_name_gen(search_item):
+    yield search_item
+
+
 @app.route('/', methods=["GET", "POST"])
 def get_all_posts():
     search_name.clear()
@@ -166,7 +170,7 @@ def get_all_posts():
 @app.route("/search/<data>", methods=["GET", "POST"])
 def search_results(data):
     news = news_api(data)
-    return render_template("search.html", news=news, search_name=data.title())
+    return render_template("search.html", news=news, search_name_index=data.title())
 
 
 @app.route("/news-<post_id>", methods=["GET", "POST"])
@@ -177,7 +181,8 @@ def new_api(post_id):
         elif None in search_name:
             raise HTTPError("400 Client Error: Bad Request for url: "
                             "https://newsapi.org/v2/everything?language=en&sortBy=publishedAt")
-        news = news_api(search_name[0])
+        gen = search_name_gen(search_name[0])
+        news = news_api(next(gen))
     except TypeError:
         flash("Something went wrong, please search for the item again")
         return redirect(url_for("get_all_posts"))
