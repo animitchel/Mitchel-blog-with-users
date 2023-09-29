@@ -12,6 +12,7 @@ from flask_gravatar import Gravatar
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
+from urllib3.exceptions import HTTPError
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm, SearchForm
@@ -171,16 +172,25 @@ def search_results(data):
 @app.route("/news-<post_id>", methods=["GET", "POST"])
 def new_api(post_id):
     try:
+        if not search_name:
+            raise TypeError("list indices must be integers or slices")
+        elif None in search_name:
+            raise HTTPError("400 Client Error: Bad Request for url: "
+                            "https://newsapi.org/v2/everything?language=en&sortBy=publishedAt")
         news = news_api(search_name[0])
-        for data in news:
-            if data["title"] == post_id:
-                return render_template("shownews.html", news=data)
     except TypeError:
         flash("Something went wrong, please search for the item again")
         return redirect(url_for("get_all_posts"))
     except IndexError:
         flash("Something went wrong, please search for the item again")
         return redirect(url_for("get_all_posts"))
+    except HTTPError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
+    else:
+        for data in news:
+            if data["title"] == post_id:
+                return render_template("shownews.html", news=data)
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
