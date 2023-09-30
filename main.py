@@ -176,7 +176,7 @@ def search_results(data):
 @app.route("/news-<post_id>", methods=["GET", "POST"])
 def new_api(post_id):
     try:
-        if not search_name:
+        if len(search_name) < 1 or len(search_name) > 1:
             raise TypeError("list indices must be integers or slices")
         elif None in search_name:
             raise HTTPError("400 Client Error: Bad Request for url: "
