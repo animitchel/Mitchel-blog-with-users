@@ -27,7 +27,7 @@
       <!-- Post preview-->
       {% for data in news %}
       {% if data.description != '[Removed]' %}
-      <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+      <div class="row flex-lg-row-reverse align-items-center g-1 py-5">
       <div class="col-10 col-sm-8 col-lg-6">
         <img src="{{data.urlToImage}}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="500" height="300" loading="lazy">
       </div>
@@ -48,8 +48,8 @@
         </p>
         {% endif %}
         <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-          <button type="button" class="btn btn-primary btn-lg px-3 me-md-2"><a href="{{ data.url }}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" fill="currentColor" class="bi bi-globe2" viewBox="0 0 16 16">
+          <a href="{{ data.url }}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-globe2" viewBox="0 0 16 16">
                 <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm7.5-6.923c-.67.204-1.335.82-1.887
                 1.855-.143.268-.276.56-.395.872.705.157 1.472.257 2.282.287V1.077zM4.249
                 3.539c.142-.384.304-.744.481-1.078a6.7 6.7 0 0 1 .597-.933A7.01 7.01 0 0 0 3.051 3.05c.362.184.763.349
@@ -70,7 +70,7 @@
                 597.597.932zm-.488 1.343a7.765 7.765 0 0 0-.395-.872C9.835 1.897 9.17 1.282 8.5 1.077V4.09c.81-.03
                 1.577-.13 2.282-.287z"/>
                 </svg>
-          </a></button>
+          </a>
         </div>
       </div>
       </div>
