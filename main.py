@@ -17,6 +17,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm, SearchForm
 
+DATA_ARTICLES_COUNT = 20
+NUMS_OF_ARTICLES_TO_RENDER = 10
+SMTPLIB_CONNECT_NO = 587
 load_dotenv()
 
 app = Flask(__name__)
@@ -143,14 +146,10 @@ def news_api(search):
     d = requests.get(url="https://newsapi.org/v2/everything?", params=params, headers=header)
     d.raise_for_status()
     data = d.json()
-    return data["articles"][:20]
+    return data["articles"][:DATA_ARTICLES_COUNT]
 
 
 search_name = []
-
-
-def search_name_gen(search_item):
-    yield search_item
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -169,20 +168,9 @@ def get_all_posts():
 
 @app.route("/search/<data>", methods=["GET", "POST"])
 def search_results(data):
-    news = news_api(data)
-    return render_template("search.html", news=news, search_name_index=data.title())
-
-
-@app.route("/news-<post_id>", methods=["GET", "POST"])
-def new_api(post_id):
     try:
-        if len(search_name) < 1 or len(search_name) > 1:
-            raise TypeError("list indices must be integers or slices")
-        elif None in search_name:
-            raise HTTPError("400 Client Error: Bad Request for url: "
-                            "https://newsapi.org/v2/everything?language=en&sortBy=publishedAt")
-        gen = search_name_gen(search_name[0])
-        news = news_api(next(gen))
+        news = news_api(data)
+        news = news[:NUMS_OF_ARTICLES_TO_RENDER]
     except TypeError:
         flash("Something went wrong, please search for the item again")
         return redirect(url_for("get_all_posts"))
@@ -193,9 +181,25 @@ def new_api(post_id):
         flash("Something went wrong, please search for the item again")
         return redirect(url_for("get_all_posts"))
     else:
-        for data in news:
-            if data["title"] == post_id:
-                return render_template("shownews.html", news=data)
+        return render_template("search.html", news=news, search_name_index=data.title())
+
+
+@app.route("/<post_id>/page-2", methods=["GET", "POST"])
+def new_api(post_id):
+    try:
+        news = news_api(search_name[0])
+        news = news[NUMS_OF_ARTICLES_TO_RENDER:]
+    except TypeError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
+    except IndexError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
+    except HTTPError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
+    else:
+        return render_template("shownews.html", news=news, search_name_index=post_id)
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
@@ -289,7 +293,7 @@ def about():
 
 
 def send_message(name, email, phone, message):
-    with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+    with smtplib.SMTP("smtp.gmail.com", SMTPLIB_CONNECT_NO) as connection:
         connection.starttls()
         connection.login(user='jeremylawrence112@gmail.com', password=os.getenv("PASSWORD"))
         connection.sendmail(from_addr='jeremylawrence112@gmail.com',
