@@ -172,13 +172,13 @@ def search_results(data):
         news = news_api(data)
         news = news[:NUMS_OF_ARTICLES_TO_RENDER]
     except TypeError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     except IndexError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     except HTTPError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     else:
         return render_template("search.html", news=news, search_name_index=data.title())
@@ -200,6 +200,32 @@ def new_api(post_id):
         return redirect(url_for("get_all_posts"))
     else:
         return render_template("shownews.html", news=news, search_name_index=post_id)
+
+
+@app.route("/<post_id>")
+def add_article_to_db(post_id):
+    try:
+        news = news_api(search_name[0])
+    except TypeError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
+    except IndexError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
+    except HTTPError:
+        flash("Something went wrong, please search for the item again")
+        return redirect(url_for("get_all_posts"))
+    else:
+        for art in news:
+            if art["title"] == post_id:
+                with app.app_context():
+                    new_blog = BlogPost(title=art["title"], subtitle=art["description"],
+                                        author=current_user,
+                                        img_url=art["urlToImage"], body=art["url"],
+                                        date=f"{date.today().strftime('%B')} {date.today().day}, {date.today().year}")
+                    db.session.add(new_blog)
+                    db.session.commit()
+                return redirect(url_for("get_all_posts"))
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
