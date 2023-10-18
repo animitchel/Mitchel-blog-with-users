@@ -149,18 +149,13 @@ def news_api(search):
     return data["articles"][:DATA_ARTICLES_COUNT]
 
 
-search_name = []
-
-
 @app.route('/', methods=["GET", "POST"])
 def get_all_posts():
-    search_name.clear()
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
     posts = posts[::-1]
     search = SearchForm()
     if search.validate_on_submit():
-        search_name.append(search.search.data)
         return redirect(url_for("search_results", data=search.search.data))
 
     return render_template("index.html", all_posts=posts, search=search)
@@ -187,33 +182,33 @@ def search_results(data):
 @app.route("/<post_id>/page-2", methods=["GET", "POST"])
 def new_api(post_id):
     try:
-        news = news_api(search_name[0])
+        news = news_api(post_id)
         news = news[NUMS_OF_ARTICLES_TO_RENDER:]
     except TypeError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     except IndexError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     except HTTPError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     else:
         return render_template("shownews.html", news=news, search_name_index=post_id)
 
 
-@app.route("/<post_id>")
-def add_article_to_db(post_id):
+@app.route("/<post_id>/<post_search>")
+def add_article_to_db(post_id, post_search):
     try:
-        news = news_api(search_name[0])
+        news = news_api(post_search)
     except TypeError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     except IndexError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     except HTTPError:
-        flash("Something went wrong, please search for the item again")
+        flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     else:
         for art in news:
