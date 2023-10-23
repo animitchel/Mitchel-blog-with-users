@@ -17,8 +17,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm, SearchForm
 
-DATA_ARTICLES_COUNT = 20
-NUMS_OF_ARTICLES_TO_RENDER = 10
+DATA_ARTICLES_COUNT = 40
+NUMS_OF_ARTICLES_TO_RENDER = 20
 SMTPLIB_CONNECT_NO = 587
 load_dotenv()
 
