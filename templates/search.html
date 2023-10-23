@@ -29,7 +29,11 @@
       {% if data.description != '[Removed]' %}
       <div class="row flex-lg-row-reverse align-items-center g-1 py-5">
       <div class="col-10 col-sm-8 col-lg-6">
-        <img src="{{data.urlToImage}}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="500" height="300" loading="lazy">
+        {% if data.urlToImage == None %}
+          <img src="/static/assets/img/alternative-search-engines-1024x512.png" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="500" height="300" loading="lazy">
+        {% else %}
+          <img src="{{data.urlToImage}}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="500" height="300" loading="lazy">
+        {% endif %}
       </div>
       <div class="col-lg-6">
           <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3"><a href="{{ data.url }}">{{ data.title }}</a></h1>
