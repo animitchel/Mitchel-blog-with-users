@@ -80,6 +80,19 @@
   --bs-highlight-bg: #fff3cd;
 }
 
+.card-text, .mb-0, .mb-3 {
+  width: 100%;
+  white-space: normal;
+  overflow: hidden;    /* Hide overflowing text */
+  text-overflow: ellipsis; /* Display ellipsis for overflowed text */
+}
+
+.card-text, .mb-0, .mb-3 {
+  white-space: normal;
+  text-overflow: ellipsis; /* Display ellipsis for overflowed text */
+  overflow: hidden;    /* Hide overflowing text */
+}
+
 .success {
     color: Red;
 }
