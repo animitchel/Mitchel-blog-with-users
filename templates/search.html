@@ -21,85 +21,84 @@
 </header>
 
 <!-- Main Content-->
+
 <div class="container px-4 px-lg-5">
-  <div class="row gx-4 gx-lg-5 justify-content-center">
-    <div class="col-md-10 col-lg-8 col-xl-7">
-      <!-- Post preview-->
-      {% for data in news %}
-      {% if data.description != '[Removed]' %}
-      <div class="row flex-lg-row-reverse align-items-center g-1 py-5">
-      <div class="col-10 col-sm-8 col-lg-6">
-        {% if data.urlToImage == None %}
-          <img src="/static/assets/img/alternative-search-engines-1024x512.png" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="500" height="300" loading="lazy">
-        {% else %}
-          <img src="{{data.urlToImage}}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="500" height="300" loading="lazy">
-        {% endif %}
-      </div>
-      <div class="col-lg-6">
-          <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3"><a href="{{ data.url }}">{{ data.title }}</a></h1>
-
-        {% if data.author %}
-        <p><span class="meta"
-            >  Posted by
-            <b>{{ data.author }}</b>
-            on {{ data.publishedAt[:10] }}
-        </span>
-
-        </p>
-        {% else %}
-        <p><span class="meta">
-           Posted on {{ data.publishedAt[:10] }}
-          </span>
-        </p>
-        {% endif %}
-
-        {% if current_user.id == 1 %}
-        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-          <a href="{{url_for('add_article_to_db', post_id=data.title, post_search=search_name_index) }}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-database-add"
-                   viewBox="0 0 16 16">
-                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1
-                0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Z"/>
-                <path d="M12.096 6.223A4.92 4.92 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.493 4.493 0 0 1
-                1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875
-                2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034
-                1.555-.097a4.525 4.525 0 0 1-.813-.927C8.5 14.992 8.252 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875
-                3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.552 4.552 0 0 1 0-1H8c-1.464
-                0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10c.262
-                0 .52-.008.774-.024a4.525 4.525 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.
-                687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777ZM3
-                4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0
-                .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4Z"/>
-                </svg>
-          </a>
+  <div class="row gx-4 gx-lg-5">
+    <!-- Post preview-->
+    {% for data in news %}
+    {% if data.description != '[Removed]' %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 d-flex justify-content-center mb-5">
+      <div class="col">
+        <div class="card shadow-sm">
+          {% if data.urlToImage == None %}
+          <img src="/static/assets/img/alternative-search-engines-1024x512.png" alt="Image" width="100%" height="225">
+          {% else %}
+          <img src="{{data.urlToImage}}" alt="Image" width="100%" height="225">
+          {% endif %}
+          <div class="card-body">
+            <h3 class="mb-0"><a href="{{ data.url }}">{{ data.title }}</a></h3>
+            <p class="card-text"><strong class="d-inline-block mb-2 text-success-emphasis"><i>{{ data.description }}</i></strong></p>
+            {% if data.author %}
+            <p class="mb-3 text-body-secondary"><i>Posted by <b>{{ data.author }}</b></i></p>
+            {% endif %}
+            {% if current_user.id == 1 %}
+            <div class="mb-3 d-grid gap-2 d-md-flex justify-content-md-start">
+              <a href="{{url_for('add_article_to_db', post_id=data.title, post_search=search_name_index) }}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-database-add"
+                       viewBox="0 0 16 16">
+                    <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1
+                    0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Z"/>
+                    <path d="M12.096 6.223A4.92 4.92 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.493 4.493 0 0 1
+                    1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875
+                    2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034
+                    1.555-.097a4.525 4.525 0 0 1-.813-.927C8.5 14.992 8.252 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875
+                    3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.552 4.552 0 0 1 0-1H8c-1.464
+                    0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10c.262
+                    0 .52-.008.774-.024a4.525 4.525 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.
+                    687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777ZM3
+                    4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0
+                    .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4Z"/>
+                    </svg>
+              </a>
+            </div>
+            {% endif %}
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="btn-group">
+                <a href="{{ data.url }}"><button type="button" class="btn btn-sm btn-outline-secondary">View</button></a>
+              </div>
+              <small class="text-body-secondary"><i>{{ data.publishedAt[:10] }}</i></small>
+            </div>
+          </div>
         </div>
-        {% endif %}
       </div>
-      </div>
-      <hr class="my-5" />
-      {% endif %}
-      {% endfor %}
+    </div>
 
-      <!-- Pager-->
-      <div class="d-flex justify-content-end mb-4">
-        <a class="btn btn-secondary text-uppercase" href="{{ url_for('new_api', post_id = search_name_index) }}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-arrow-right-square" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2
-            2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4.5 5.5a.5.5 0 0 0 0 1h5.793l-2.147
-            2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
-            </svg></a>
-      </div>
-      <div class="d-flex justify-content-start mb-4">
-        <a class="btn btn-secondary text-uppercase" href="#">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-bar-up"
-               viewBox="0 0 16 16">
-          <path fill-rule="evenodd" d="M8 10a.5.5 0 0 0 .5-.5V3.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708
-          0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V9.5a.5.5 0 0 0 .5.5zm-7 2.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0
-          1h-13a.5.5 0 0 1-.5-.5z"/></svg></a>
-      </div>
-     </div>
+    <hr class="my-5" />
+    {% endif %}
+    {% endfor %}
+
+    <!-- Pager-->
+    <div class="d-flex justify-content-end mb-4">
+      <a class="btn btn-secondary text-uppercase" href="{{ url_for('new_api', post_id = search_name_index) }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-right-square" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2
+          2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4.5 5.5a.5.5 0 0 0 0 1h5.793l-2.147
+          2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
+          </svg></a>
+    </div>
+    <div class="d-flex justify-content-start mb-4">
+      <a class="btn btn-secondary text-uppercase" href="#">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-bar-up"
+             viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M8 10a.5.5 0 0 0 .5-.5V3.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708
+        0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V9.5a.5.5 0 0 0 .5.5zm-7 2.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0
+        1h-13a.5.5 0 0 1-.5-.5z"/></svg></a>
     </div>
   </div>
+</div>
+
+
+
 
 
 {% include "footer.html" %}
