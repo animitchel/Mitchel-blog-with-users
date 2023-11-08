@@ -4,7 +4,7 @@
 <!-- Page Header-->
 <header
   class="masthead"
-  style="background-image: url('../static/assets/img/home-bg.jpg')"
+  style="background-image: url('../static/assets/img/tumblr_a2bc5d2d141b6363c432df5fe93e93d0_b169faa3_2048.jpg')"
 >
   <div class="container position-relative px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
@@ -30,6 +30,21 @@
         {% endif %}
       {% endwith %}
       {{ render_form(search, novalidate=True , button_map={"submit": "primary"}) }}
+
+      <div class="top_searches" id="styled-text1"> <em> Top trending searches:
+        {% for item in total_top_searches_result %}
+          <a class="styled-a" href="{{ url_for('search_results', data=item[1]) }} ">{{ item[1] }} </a>...
+        {% endfor %}
+      </em> </div>
+
+      {% if current_user.is_authenticated %}
+      <div class="top_searches" id="styled-text"> <em> Your top searches:
+        {% for items in top_searches %}
+          <a class="styled-a" href="{{ url_for('search_results', data=items[1]) }} ">{{ items[1] }} </a>...
+        {% endfor %}
+      </em> </div>
+      {% endif %}
+
       <hr class="my-5" />
 
       {% for post in all_posts %}
@@ -43,7 +58,7 @@
           <a href="#">{{post.author.name}}</a>
           on {{post.date}}
           {% if current_user.id == 1 %}
-          <a href="{{url_for('delete_post', post_id=post.id) }}">
+          <a href="{{url_for('delete_post_and_comments', post_id=post.id) }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3"
                  viewBox="0 0 16 16">
             <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0
@@ -72,7 +87,7 @@
       <!-- Pager-->
       <div class="d-flex justify-content-end mb-4">
         <a class="btn btn-secondary text-uppercase" href="#">
-          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-arrow-bar-up"
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-bar-up"
                viewBox="0 0 16 16">
           <path fill-rule="evenodd" d="M8 10a.5.5 0 0 0 .5-.5V3.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708
           0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V9.5a.5.5 0 0 0 .5.5zm-7 2.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0

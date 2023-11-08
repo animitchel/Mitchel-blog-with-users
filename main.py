@@ -20,6 +20,10 @@ from forms import CreatePostForm, RegisterForm, LoginForm, CommentsForm, SearchF
 DATA_ARTICLES_COUNT = 40
 NUMS_OF_ARTICLES_TO_RENDER = 20
 SMTPLIB_CONNECT_NO = 587
+INCREMENT = 1
+TOP_SEARCH_NUMBER_RENDER = 5
+SALT_LENGTH = 10
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -54,6 +58,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(300), nullable=False)
     posts = relationship("BlogPost", back_populates="author")
     comments = relationship("Comment", back_populates="commenter")
+    top_search = relationship("TopSearches", back_populates="user_top_search")
 
 
 class BlogPost(db.Model):
@@ -77,7 +82,24 @@ class Comment(db.Model):
     comments_posted = db.Column(db.Text)
 
 
+class TopSearches(db.Model):
+    __tablename__ = "top_searches"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    search_item = db.Column(db.String(300))
+    search_count = db.Column(db.Integer)
+    user_top_search = relationship("User", back_populates="top_search")
+
+
+class TotalTopSearches(db.Model):
+    __tablename__ = "total_top_searches"
+    id = db.Column(db.Integer, primary_key=True)
+    search_item = db.Column(db.String(300))
+    total_search_count = db.Column(db.Integer)
+
+
 with app.app_context():
+    # db.drop_all()
     db.create_all()
 
 
@@ -99,7 +121,7 @@ def register():
         user = User.query.filter_by(email=register_form.email.data).first()
         if not user:
             password = generate_password_hash(password=register_form.password.data, method="pbkdf2:sha256",
-                                              salt_length=10)
+                                              salt_length=SALT_LENGTH)
             new_user = User(email=register_form.email.data, password=password, name=register_form.name.data)
             db.session.add(new_user)
             db.session.commit()
@@ -135,7 +157,7 @@ def logout():
     return redirect(url_for('get_all_posts'))
 
 
-def news_api(search):
+def news_api(search) -> list:
     header = {"X-Api-Key": os.getenv("APIKEY")
               }
     params = {
@@ -143,10 +165,53 @@ def news_api(search):
         "language": "en",
         "sortBy": "publishedAt"
     }
-    d = requests.get(url="https://newsapi.org/v2/everything?", params=params, headers=header)
-    d.raise_for_status()
-    data = d.json()
+    raw_data = requests.get(url="https://newsapi.org/v2/everything?", params=params, headers=header)
+    raw_data.raise_for_status()
+    data = raw_data.json()
     return data["articles"][:DATA_ARTICLES_COUNT]
+
+
+def add_new_search_item_to_db(search_name, user_id) -> None:
+    search_db = db.get_or_404(User, user_id)
+    search_name = search_name.title()
+
+    with app.app_context():
+        for item in search_db.top_search:
+            if search_name in item.search_item:
+                db.get_or_404(TopSearches, item.id).search_count += INCREMENT
+                db.session.commit()
+                return
+
+        new_searches_item = TopSearches(search_item=search_name, search_count=INCREMENT, user_id=current_user.id)
+        db.session.add(new_searches_item)
+        db.session.commit()
+
+
+def render_top_searches(user_id) -> list:
+    search_db = db.get_or_404(User, user_id)
+    item_count_tuple = ((item.search_count, item.search_item) for item in search_db.top_search)
+    return sorted(list(item_count_tuple), reverse=True)[:TOP_SEARCH_NUMBER_RENDER]
+
+
+def add_new_search_item_to_general_db(search_name) -> None:
+    search_name = search_name.title()
+
+    with app.app_context():
+        for item in db.session.query(TotalTopSearches):
+            if search_name in item.search_item:
+                db.get_or_404(TotalTopSearches, item.id).total_search_count += INCREMENT
+                db.session.commit()
+                return
+
+    new_total_search_item = TotalTopSearches(search_item=search_name, total_search_count=INCREMENT)
+    db.session.add(new_total_search_item)
+    db.session.commit()
+
+
+def render_general_top_searches() -> list:
+    total_searches = db.session.query(TotalTopSearches)
+    item_count_tuple = ((item.total_search_count, item.search_item) for item in total_searches)
+    return sorted(list(item_count_tuple), reverse=True)[:TOP_SEARCH_NUMBER_RENDER]
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -155,10 +220,22 @@ def get_all_posts():
     posts = result.scalars().all()
     posts = posts[::-1]
     search = SearchForm()
+
+    if current_user.is_authenticated:
+        top_searches = render_top_searches(current_user.id)
+    else:
+        top_searches = None
+
     if search.validate_on_submit():
+        add_new_search_item_to_general_db(search_name=search.search.data)
+        if current_user.is_authenticated:
+            add_new_search_item_to_db(search_name=search.search.data, user_id=current_user.id)
         return redirect(url_for("search_results", data=search.search.data))
 
-    return render_template("index.html", all_posts=posts, search=search)
+    total_top_searches_result = render_general_top_searches()
+
+    return render_template("index.html", all_posts=posts, search=search, top_searches=top_searches,
+                           total_top_searches_result=total_top_searches_result)
 
 
 @app.route("/search/<data>", methods=["GET", "POST"])
@@ -216,7 +293,10 @@ def add_article_to_db(post_id, post_search):
                 with app.app_context():
                     new_blog = BlogPost(title=art["title"], subtitle=art["description"],
                                         author=current_user,
-                                        img_url=art["urlToImage"], body=art["url"],
+                                        img_url=art["urlToImage"], body=f"<a href='{art['url']}'>{art['url']}</a> "
+                                                                        f"<b><--Goto URL, copy the body of the News "
+                                                                        f"content, paste it in 'Edit Post' and summit"
+                                                                        f"</b>",
                                         date=f"{date.today().strftime('%B')} {date.today().day}, {date.today().year}")
                     db.session.add(new_blog)
                     db.session.commit()
@@ -295,7 +375,7 @@ def edit_post(post_id):
 
 @app.route("/delete/<int:post_id>")
 @admin
-def delete_post(post_id):
+def delete_post_and_comments(post_id):
     comment = db.session.query(Comment)
     for blog_comments in comment:
         if post_id == blog_comments.blog_post_id:
@@ -313,7 +393,7 @@ def about():
     return render_template("about.html")
 
 
-def send_message(name, email, phone, message):
+def send_message(name, email, phone, message) -> None:
     with smtplib.SMTP("smtp.gmail.com", SMTPLIB_CONNECT_NO) as connection:
         connection.starttls()
         connection.login(user='jeremylawrence112@gmail.com', password=os.getenv("PASSWORD"))

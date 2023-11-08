@@ -11,6 +11,30 @@
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
 
+ .top_searches {
+    margin: 20px; /* Add 20 pixels of margin on all sides (top, right, bottom, left) */
+    padding: 10px; /* Optional: Add 10 pixels of padding inside the div */
+
+    background-color: #f0f0f0;
+}
+
+#styled-text {
+    font-size: 15px;
+    color: red;
+}
+
+#styled-text1 {
+    font-size: 15px;
+    color: red;
+}
+
+.styled-a {
+    font-size: 15px;
+    color: red;
+    background-color: yellow;
+
+}
+
 :root {
   --bs-blue: #0d6efd;
   --bs-indigo: #6610f2;
