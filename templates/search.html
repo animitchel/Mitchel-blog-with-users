@@ -29,14 +29,14 @@
     {% if data.description != '[Removed]' %}
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 d-flex justify-content-center mb-5">
       <div class="col">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm rounded-5">
           {% if data.urlToImage == None %}
-          <img src="/static/assets/img/alternative-search-engines-1024x512.png" alt="Image" width="100%" height="225">
+          <img class=rounded-5 src="/static/assets/img/alternative-search-engines-1024x512.png" alt="Image" width="100%" height="225">
           {% else %}
-          <img src="{{data.urlToImage}}" alt="Image" width="100%" height="225">
+          <img class=rounded-5 src="{{data.urlToImage}}" alt="Image" width="100%" height="225">
           {% endif %}
           <div class="card-body">
-            <h3 class="mb-0"><a href="{{ data.url }}">{{ data.title }}</a></h3>
+            <h3 class="mb-0"><a href="{{ data.url }}" target="_blank">{{ data.title }}</a></h3>
             <p class="card-text"><strong class="d-inline-block mb-2 text-success-emphasis"><i>{{ data.description }}</i></strong></p>
             {% if data.author %}
             <p class="mb-3 text-body-secondary"><i>Posted by <b>{{ data.author }}</b></i></p>
@@ -64,7 +64,7 @@
             {% endif %}
             <div class="d-flex justify-content-between align-items-center">
               <div class="btn-group">
-                <a href="{{ data.url }}"><button type="button" class="btn btn-sm btn-outline-secondary">View</button></a>
+                <a href="{{ data.url }} " target="_blank"><button type="button" class="btn btn-sm btn-outline-secondary">View</button></a>
               </div>
               <small class="text-body-secondary"><i>{{ data.publishedAt[:10] }}</i></small>
             </div>

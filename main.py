@@ -5,7 +5,7 @@ from datetime import date
 from functools import wraps
 
 from dotenv import load_dotenv
-from flask import Flask, abort, render_template, redirect, url_for, flash, request
+from flask import Flask, abort, render_template, redirect, url_for, flash, request, jsonify
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
@@ -116,8 +116,10 @@ def admin(f):
 @app.route('/register', methods=["GET", "POST"])
 def register():
     register_form = RegisterForm()
+
     if register_form.validate_on_submit():
         user = User.query.filter_by(email=register_form.email.data).first()
+
         if not user:
             password = generate_password_hash(password=register_form.password.data, method="pbkdf2:sha256",
                                               salt_length=SALT_LENGTH)
@@ -130,6 +132,7 @@ def register():
         else:
             flash("You've already signed up, with that Email, Login instead")
             return redirect(url_for("login"))
+
     return render_template("register.html", form=register_form)
 
 
@@ -137,6 +140,7 @@ def register():
 def login():
     login_form = LoginForm()
     if login_form.validate_on_submit():
+
         user = User.query.filter_by(email=login_form.email.data).first()
         if user:
             if check_password_hash(pwhash=user.password, password=login_form.password.data):
@@ -170,18 +174,21 @@ def news_api(search) -> list:
     return data["articles"][:DATA_ARTICLES_COUNT]
 
 
-def add_new_search_item_to_db(search_name, user_id) -> None:
-    search_db = db.get_or_404(User, user_id)
+def add_new_search_item_to_db(search_name) -> None:
     search_name = search_name.title()
 
     with app.app_context():
-        for item in search_db.top_search:
-            if search_name in item.search_item:
-                db.get_or_404(TopSearches, item.id).search_count += INCREMENT
-                db.session.commit()
-                return
+        top_searches = TopSearches.query.filter_by(search_item=search_name).first()
 
-        new_searches_item = TopSearches(search_item=search_name, search_count=INCREMENT, user_id=current_user.id)
+        if top_searches:
+            db.get_or_404(TopSearches, top_searches.id).search_count += INCREMENT
+            db.session.commit()
+            return
+
+        search_json = jsonify(item=search_name, count=INCREMENT, user=current_user.id).json
+
+        new_searches_item = TopSearches(search_item=search_json["item"], search_count=search_json["count"],
+                                        user_id=search_json["user"])
         db.session.add(new_searches_item)
         db.session.commit()
 
@@ -196,15 +203,19 @@ def add_new_search_item_to_general_db(search_name) -> None:
     search_name = search_name.title()
 
     with app.app_context():
-        for item in db.session.query(TotalTopSearches):
-            if search_name in item.search_item:
-                db.get_or_404(TotalTopSearches, item.id).total_search_count += INCREMENT
-                db.session.commit()
-                return
+        total_top_searches = TotalTopSearches.query.filter_by(search_item=search_name).first()
 
-    new_total_search_item = TotalTopSearches(search_item=search_name, total_search_count=INCREMENT)
-    db.session.add(new_total_search_item)
-    db.session.commit()
+        if total_top_searches:
+            db.get_or_404(TotalTopSearches, total_top_searches.id).total_search_count += INCREMENT
+            db.session.commit()
+            return
+
+        search_json = jsonify(item=search_name, count=INCREMENT).json
+
+        new_total_search_item = TotalTopSearches(search_item=search_json["item"],
+                                                 total_search_count=search_json["count"])
+        db.session.add(new_total_search_item)
+        db.session.commit()
 
 
 def render_general_top_searches() -> list:
@@ -213,11 +224,25 @@ def render_general_top_searches() -> list:
     return sorted(list(item_count_tuple), reverse=True)[:TOP_SEARCH_NUMBER_RENDER]
 
 
+def database_api_data_to_render(blog_post_list) -> list:
+    for post in blog_post_list:
+        yield jsonify(
+            id=post.id,
+            title=post.title,
+            subtitle=post.subtitle,
+            author=post.author.name,
+            date=post.date
+        ).json
+
+
 @app.route('/', methods=["GET", "POST"])
 def get_all_posts():
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
     posts = posts[::-1]
+
+    generator_posts = database_api_data_to_render(posts)
+
     search = SearchForm()
 
     if current_user.is_authenticated:
@@ -227,14 +252,15 @@ def get_all_posts():
 
     if search.validate_on_submit():
         add_new_search_item_to_general_db(search_name=search.search.data)
+
         if current_user.is_authenticated:
-            add_new_search_item_to_db(search_name=search.search.data, user_id=current_user.id)
+            add_new_search_item_to_db(search_name=search.search.data)
         return redirect(url_for("search_results", data=search.search.data))
 
     total_top_searches_result = render_general_top_searches()
 
-    return render_template("index.html", all_posts=posts, search=search, top_searches=top_searches,
-                           total_top_searches_result=total_top_searches_result)
+    return render_template("index.html", all_posts=generator_posts, search=search,
+                           top_searches=top_searches, total_top_searches_result=total_top_searches_result)
 
 
 @app.route("/search/<data>", methods=["GET", "POST"])
@@ -302,10 +328,41 @@ def add_article_to_db(post_id, post_search):
                 return redirect(url_for("get_all_posts"))
 
 
+def requested_blog_post(content):
+    return jsonify(
+        id=content.id,
+        title=content.title,
+        subtitle=content.subtitle,
+        author=content.author.name,
+        date=content.date,
+        img_url=content.img_url,
+        body=content.body
+    ).json
+
+
+def comments_on_post(comment_form, post_id):
+    return jsonify(
+        comment_posted=comment_form.comment.data,
+        post_id=post_id
+    ).json
+
+
+def comments_on_post_api(comment_ins):
+    for comment in comment_ins:
+        yield jsonify(
+            blog_post_id=comment.blog_post_id,
+            comments_posted=comment.comments_posted,
+            email=comment.commenter.email,
+            name=comment.commenter.name
+        ).json
+
+
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
-    requested_post = db.get_or_404(BlogPost, post_id)
+    requested_post = requested_blog_post(db.get_or_404(BlogPost, post_id))
+
     comment = CommentsForm()
+
     gravatar = Gravatar(app,
                         size=100,
                         rating='g',
@@ -314,21 +371,45 @@ def show_post(post_id):
                         force_lower=False,
                         use_ssl=False,
                         base_url=None)
+
     comments = db.session.query(Comment)
     comments = comments[::-1]
+
+    comments_json = comments_on_post_api(comments)
+
     ins_list = [com for com in comments if post_id == com.blog_post_id]
     number_of_comments = len(ins_list)
+
     if comment.validate_on_submit():
         if not current_user.is_authenticated:
             flash("Please login or register an account with us to be able to comment")
             return redirect(url_for("register"))
-        with app.app_context():
-            new_comment = Comment(comments_posted=comment.comment.data, commenter=current_user, blog_post_id=post_id)
-            db.session.add(new_comment)
-            db.session.commit()
-            return redirect(url_for("show_post", post_id=post_id))
-    return render_template("post.html", post=requested_post, form=comment, users=comments, gravatar=gravatar,
-                           count=number_of_comments)
+
+        add_comments = comments_on_post(comment_form=comment, post_id=post_id)
+
+        if len(add_comments["comment_posted"]) > 350:
+            flash("Please keep your comment under 350 characters.")
+        else:
+            with app.app_context():
+
+                new_comment = Comment(comments_posted=add_comments["comment_posted"], commenter=current_user,
+                                      blog_post_id=add_comments["post_id"])
+                db.session.add(new_comment)
+                db.session.commit()
+                return redirect(url_for("show_post", post_id=post_id))
+
+    return render_template("post.html", post=requested_post, form=comment, comments=comments_json,
+                           gravatar=gravatar, count=number_of_comments)
+
+
+def add_new_post_edit_post_internal_api(article_form):
+    return jsonify(
+        title=article_form.title.data,
+        subtitle=article_form.subtitle.data,
+        img_url=article_form.img_url.data,
+        body=article_form.body.data,
+        date=f"{date.today().strftime('%B')} {date.today().day}, {date.today().year}"
+    ).json
 
 
 @app.route("/new-post", methods=["GET", "POST"])
@@ -337,11 +418,13 @@ def show_post(post_id):
 def add_new_post():
     blog_form = CreatePostForm()
     if blog_form.validate_on_submit():
+        blog = add_new_post_edit_post_internal_api(blog_form)
+
         with app.app_context():
-            new_blog = BlogPost(title=blog_form.title.data, subtitle=blog_form.subtitle.data,
+            new_blog = BlogPost(title=blog["title"], subtitle=blog["subtitle"],
                                 author=current_user,
-                                img_url=blog_form.img_url.data, body=blog_form.body.data,
-                                date=f"{date.today().strftime('%B')} {date.today().day}, {date.today().year}")
+                                img_url=blog["img_url"], body=blog["body"],
+                                date=blog["date"])
             db.session.add(new_blog)
             db.session.commit()
 
@@ -350,25 +433,38 @@ def add_new_post():
     return render_template("make-post.html", form=blog_form)
 
 
+def edit_post_internal_api(article_ins):
+    return jsonify(
+        title=article_ins.title,
+        subtitle=article_ins.subtitle,
+        img_url=article_ins.img_url,
+        body=article_ins.body
+
+    ).json
+
+
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
 @login_required
 @admin
 def edit_post(post_id):
     ins_blog = db.get_or_404(BlogPost, post_id)
+    ins_blog_json = edit_post_internal_api(ins_blog)
+
     blog_form = CreatePostForm()
 
     if blog_form.validate_on_submit():
-        ins_blog.title = blog_form.title.data
-        ins_blog.subtitle = blog_form.subtitle.data
-        ins_blog.img_url = blog_form.img_url.data
-        ins_blog.body = blog_form.body.data
+        blog = add_new_post_edit_post_internal_api(blog_form)
+        ins_blog.title = blog["title"]
+        ins_blog.subtitle = blog["subtitle"]
+        ins_blog.img_url = blog["img_url"]
+        ins_blog.body = blog["body"]
         db.session.commit()
         return redirect(url_for("show_post", post_id=post_id))
 
-    blog_form.title.data = ins_blog.title
-    blog_form.subtitle.data = ins_blog.subtitle
-    blog_form.img_url.data = ins_blog.img_url
-    blog_form.body.data = ins_blog.body
+    blog_form.title.data = ins_blog_json["title"]
+    blog_form.subtitle.data = ins_blog_json["subtitle"]
+    blog_form.img_url.data = ins_blog_json["img_url"]
+    blog_form.body.data = ins_blog_json["body"]
     return render_template("make-post.html", form=blog_form, is_edit=True)
 
 
@@ -412,9 +508,11 @@ def contact():
                      request.form.get('message'))
 
         sent = True
+
         return render_template("contact.html", msg_sent=sent)
     return render_template("contact.html")
 
 
 if __name__ == "__main__":
     app.run(debug=False)
+

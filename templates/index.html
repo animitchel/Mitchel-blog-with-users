@@ -29,16 +29,21 @@
           {% endfor %}
         {% endif %}
       {% endwith %}
-      {{ render_form(search, novalidate=True , button_map={"submit": "primary"}) }}
 
-      <div class="top_searches" id="styled-text1"> <em> Top trending searches:
+      <div class="top_searches my-5 rounded-3" >
+        <em>
+      {{ render_form(search, novalidate=True , button_map={"submit": "primary"}) }}
+          </em>
+      </div>
+
+      <div class="top_searches my-5 rounded-3" id="styled-text1"> <em> Top trending searches:
         {% for item in total_top_searches_result %}
           <a class="styled-a" href="{{ url_for('search_results', data=item[1]) }} ">{{ item[1] }} </a>...
         {% endfor %}
       </em> </div>
 
       {% if current_user.is_authenticated %}
-      <div class="top_searches" id="styled-text"> <em> Your top searches:
+      <div class="top_searches rounded-3" id="styled-text"> <em> Your top searches:
         {% for items in top_searches %}
           <a class="styled-a" href="{{ url_for('search_results', data=items[1]) }} ">{{ items[1] }} </a>...
         {% endfor %}
