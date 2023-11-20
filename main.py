@@ -3,12 +3,13 @@ import smtplib
 import requests
 from datetime import date
 from functools import wraps
+from hashlib import md5
 
 from dotenv import load_dotenv
 from flask import Flask, abort, render_template, redirect, url_for, flash, request, jsonify
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
-from flask_gravatar import Gravatar
+
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -352,9 +353,14 @@ def comments_on_post_api(comment_ins):
         yield jsonify(
             blog_post_id=comment.blog_post_id,
             comments_posted=comment.comments_posted,
-            email=comment.commenter.email,
+            email=gravatar_url(email=comment.commenter.email),
             name=comment.commenter.name
         ).json
+
+
+def gravatar_url(email, size=100, rating='g', default='retro', force_default=False):
+    hash_value = md5(email.lower().encode('utf-8')).hexdigest()
+    return f"https://www.gravatar.com/avatar/{hash_value}?s={size}&d={default}&r={rating}&f={force_default}"
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
@@ -362,15 +368,6 @@ def show_post(post_id):
     requested_post = requested_blog_post(db.get_or_404(BlogPost, post_id))
 
     comment = CommentsForm()
-
-    gravatar = Gravatar(app,
-                        size=100,
-                        rating='g',
-                        default='retro',
-                        force_default=False,
-                        force_lower=False,
-                        use_ssl=False,
-                        base_url=None)
 
     comments = db.session.query(Comment)
     comments = comments[::-1]
@@ -399,7 +396,7 @@ def show_post(post_id):
                 return redirect(url_for("show_post", post_id=post_id))
 
     return render_template("post.html", post=requested_post, form=comment, comments=comments_json,
-                           gravatar=gravatar, count=number_of_comments)
+                           count=number_of_comments)
 
 
 def add_new_post_edit_post_internal_api(article_form):
@@ -515,4 +512,3 @@ def contact():
 
 if __name__ == "__main__":
     app.run(debug=False)
-

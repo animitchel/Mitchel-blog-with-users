@@ -59,7 +59,7 @@
             <li>
               {% if comment.blog_post_id == post.id %}
               <div class="commenterImage">
-                <img src="{{ comment.email | gravatar }}" />
+                <img src="{{ comment.email }}" />
               </div>
               <div class="commentText">
                 <p>{{ comment.comments_posted|safe }}</p>
