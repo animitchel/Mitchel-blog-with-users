@@ -240,9 +240,9 @@ def database_api_data_to_render(blog_post_list) -> list:
 def get_all_posts():
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
-    posts = posts[::-1]
+    posts_reversed_list = posts[::-1]
 
-    generator_posts = database_api_data_to_render(posts)
+    generator_posts = database_api_data_to_render(posts_reversed_list)
 
     search = SearchForm()
 
@@ -268,7 +268,7 @@ def get_all_posts():
 def search_results(data):
     try:
         news = news_api(data)
-        news = news[:NUMS_OF_ARTICLES_TO_RENDER]
+        news_articles = news[:NUMS_OF_ARTICLES_TO_RENDER]
     except TypeError:
         flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
@@ -279,14 +279,14 @@ def search_results(data):
         flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     else:
-        return render_template("search.html", news=news, search_name_index=data.title())
+        return render_template("search.html", news=news_articles, search_name_index=data.title())
 
 
 @app.route("/<post_id>/page-2", methods=["GET", "POST"])
 def new_api(post_id):
     try:
         news = news_api(post_id)
-        news = news[NUMS_OF_ARTICLES_TO_RENDER:]
+        news_articles = news[NUMS_OF_ARTICLES_TO_RENDER:]
     except TypeError:
         flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
@@ -297,7 +297,7 @@ def new_api(post_id):
         flash("Something went wrong, please search for the article again")
         return redirect(url_for("get_all_posts"))
     else:
-        return render_template("shownews.html", news=news, search_name_index=post_id)
+        return render_template("shownews.html", news=news_articles, search_name_index=post_id)
 
 
 @app.route("/<post_id>/<post_search>")
